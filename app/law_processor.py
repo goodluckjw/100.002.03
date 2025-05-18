@@ -1,4 +1,6 @@
-# 개정문에 공백을 포함한 문자열을 지원하기 위한 버전임 (100.001.14.13을 기본틀로 함)
+# 검색기능은 단일 검색어 기준. 공백포함 문자열 검색 가능. 가운뎃점 중간점 정규화 기능
+# 개정문생성은 큰따옴표로 감싸문 문자열로 지원함. 
+# 100.002.03은 기존 100.002.02에 큰따옴표 마지막에 공백 들어간 경우 trim하는 기능을 추가하는 버전임 
 
 import requests
 import xml.etree.ElementTree as ET
@@ -130,6 +132,9 @@ def extract_article_num(loc):
 
 def extract_chunk_and_josa(token, searchword):
     """검색어를 포함하는 덩어리와 조사를 추출"""
+    # 검색어의 앞뒤 공백 제거 (trim)
+    searchword = searchword.strip()
+    
     # 제외할 접미사 리스트 (덩어리에 포함시키지 않을 것들)
     suffix_exclude = ["의", "에", "에서", "에게", 
                      "등", "등의", "등인", "등만", "등에", "만", "만을", "만이", "만은", "만에", "만으로"]
@@ -198,6 +203,9 @@ def preprocess_search_term(search_term):
 
 def find_phrase_with_josa(text, phrase):
     """공백 포함 문자열과 그 뒤의 조사를 찾는 함수"""
+        # 검색 구문에서 앞뒤 공백 제거 (trim)
+    phrase = phrase.strip()
+    
     matches = []
     start_pos = 0
     
@@ -619,6 +627,7 @@ def group_locations(loc_list):
             return ", ".join(result_parts[:-1]) + f" 및 {result_parts[-1]}"
     else:
         return ""
+        
 def run_amendment_logic(find_word, replace_word):
     """개정문 생성 로직"""
     amendment_results = []
@@ -631,6 +640,10 @@ def run_amendment_logic(find_word, replace_word):
     # 새로 추가: 검색어 전처리
     processed_find_word, is_phrase = preprocess_search_term(normalized_find_word)
     processed_replace_word, _ = preprocess_search_term(normalized_replace_word)
+
+    # 추가: 명시적으로 공백 제거 확인
+    processed_find_word = processed_find_word.strip()
+    processed_replace_word = processed_replace_word.strip()
     
     # 부칙 정보 확인을 위한 변수
     부칙_검색됨 = False  # 부칙에서 검색어가 발견되었는지 여부
